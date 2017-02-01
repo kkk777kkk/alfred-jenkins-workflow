@@ -59,7 +59,13 @@ def get_status(terms=""):
                     subtext = job["lastBuild"]["displayName"];
 
                     if (job["lastBuild"]["building"]):
-                        subtext += " (building: " + str(job["lastBuild"]["duration"]/1000) + "/" + str(job["lastBuild"]["estimatedDuration"]/1000) + ")";
+                        progress = job["lastBuild"]["executor"]["progress"];
+                        duration = job["lastBuild"]["estimatedDuration"];
+
+                        subtext += " (building: " \
+                            + str(progress) + "%, " \
+                            + str(duration*progress/1000/100) + "/" + str(duration/1000) \
+                            + "sec)";
 
                     if (job["queueItem"]):
                         subtext += " - queued(" + job["queueItem"]["why"] + ")";
@@ -92,7 +98,7 @@ def get_data_from_url(url=""):
         url = CONFIGURED_URL
 
     try:
-        request = urllib.urlopen(url+"/api/json?tree=jobs[name,url,color,healthReport[description,score,iconUrl],queueItem[why],lastBuild[displayName,duration,estimatedDuration,building,timestamp]]")
+        request = urllib.urlopen(url+"/api/json?tree=jobs[name,url,color,healthReport[description,score,iconUrl],queueItem[why],lastBuild[displayName,building,estimatedDuration,executor[progress]]]")
         if request.getcode() == 200:
             response = request.read()
             returnData = json.loads(response)
