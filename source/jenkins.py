@@ -56,11 +56,19 @@ def get_status(terms=""):
             for job in data["jobs"]:
                 if re.search(search_regex, job["name"]) != None:
                     title = job["name"]
+                    subtext = job["lastBuild"]["displayName"];
+
+                    if (job["lastBuild"]["building"]):
+                        subtext += " (building: " + str(job["lastBuild"]["duration"]/1000) + "/" + str(job["lastBuild"]["estimatedDuration"]/1000) + ")";
+
+                    if (job["queueItem"]):
+                        subtext += " - queued(" + job["queueItem"]["why"] + ")";
+
                     if "healthReport" in job and len(job["healthReport"]) > 0:
-                        subtext = job["healthReport"][0]["description"]
+                        #subtext = job["healthReport"][0]["description"]
                         icon = health_to_icon(job["healthReport"][0]["score"], job["color"])
                     else:
-                        subtext = ""
+                        #subtext = ""
                         icon = "images/"+job["color"]+".png"
                     feedback.add_item(title, subtext, job["url"], "yes", "", icon)
         else:
@@ -84,7 +92,7 @@ def get_data_from_url(url=""):
         url = CONFIGURED_URL
 
     try:
-        request = urllib.urlopen(url+"/api/json?tree=jobs[name,url,color,healthReport[description,score,iconUrl]]")
+        request = urllib.urlopen(url+"/api/json?tree=jobs[name,url,color,healthReport[description,score,iconUrl],queueItem[why],lastBuild[displayName,duration,estimatedDuration,building,timestamp]]")
         if request.getcode() == 200:
             response = request.read()
             returnData = json.loads(response)
